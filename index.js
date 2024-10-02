@@ -36,6 +36,9 @@ const replaceTemplate = (temp, product) => {
     output = output.replaceAll('{%PRICE%}', product.price);
     output = output.replace(/{%QUANTITY%}/, product.quantity);
     output = output.replace(/{%ID%}/, product.id);
+    output = output.replace(/{%DESCRIPTION%}/, product.description);
+    output = output.replace(/{%FROM%}/, product.from);
+    output = output.replace(/{%NUTRIENTS%}/, product.nutrients);
 
     if (!product.organic)
         output = output.replace(/{%NOT_ORGANIC%}/, 'not-organic');
@@ -60,12 +63,18 @@ const data = fs.readFileSync(`${__dirname}/dev-data/data.json`, 'utf-8');
 const dataObj = JSON.parse(data);
 
 const server = http.createServer((req, res) => {
-    //console.log(req.url)
+    //console.log(req.url);
+    //console.log(url.parse(req.url, true));
+    const { query, pathname } = url.parse(req.url, true);
 
-    const pathName = req.url;
+    //const { query, pathname } = url.parse(req.url); // if true - query will be as object
+    //console.log(query.id, pathname);
+
+    //const pathName = req.url;
+    //console.log('this is pathName:  ', pathName);
 
     // Overview page
-    if (pathName === '/' || pathName === '/overview') {
+    if (pathname === '/' || pathname === '/overview') {
         //res.end('This is the Overview');
         res.writeHead(200, { 'content-type': 'text/html' });
 
@@ -77,11 +86,14 @@ const server = http.createServer((req, res) => {
         res.end(output);
 
         // Product page
-    } else if (pathName === '/product') {
-        res.end('This is the Product');
+    } else if (pathname === '/product') {
+        res.writeHead(200, { 'content-type': 'text/html' });
+        const product = dataObj[query.id];
+        output = replaceTemplate(tempProduct, product);
+        res.end(output);
 
         // API
-    } else if (pathName === '/api') {
+    } else if (pathname === '/api') {
         // fs.readFile(`${__dirname}/dev-data/data.json`, 'utf-8', (err, data) => {
         //     const productData = JSON.parse(data);
         //     //console.log(productData);
